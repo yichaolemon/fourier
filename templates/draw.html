@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Draw {{ svg_name }}</title>
+</head>
+<body>
+    <canvas id="canvas" height="500px" width="500px" />
+    <script>
+        let rs = [];
+        {% for r in coefficients_r %}
+        rs.push({{ r }});
+        {% endfor %}
+        let thetas = [];
+        {% for theta in coefficients_theta %}
+        thetas.push({{theta}});
+        {% endfor %}
+
+        const c = document.getElementById("canvas");
+        const ctx = c.getContext("2d");
+
+        let endpoints = [];
+
+        // Current time.
+        let t = 0;
+        const draw = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = "black";
+            ctx.beginPath();
+            let x = 0;
+            let y = 0;
+            ctx.moveTo(x, y);
+            let lastPoint = [x, y];
+            for (let i = 0; i < rs.length; i++) {
+                const r = rs[i];
+                const theta = thetas[i];
+                const multiplier = (i % 2 === 0 ? i / 2 : -(i+1)/2);
+                const angle = theta + multiplier * 2 * Math.PI * t;
+                x += r * Math.cos(angle);
+                y += r * Math.sin(angle);
+                ctx.lineTo(x, y);
+                lastPoint = [x, y];
+            }
+            ctx.stroke();
+
+            ctx.strokeStyle = "blue";
+            endpoints.push(lastPoint);
+            ctx.moveTo(endpoints[0][0], endpoints[0][1]);
+            ctx.beginPath();
+            for (let endpoint of endpoints) {
+                ctx.lineTo(endpoint[0], endpoint[1]);
+            }
+            ctx.stroke();
+            t += 0.01;
+        };
+
+        setInterval(draw, 50);
+    </script>
+</body>
+</html>
+
