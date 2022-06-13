@@ -16,26 +16,39 @@
         {% for theta in coefficients_theta %}
         thetas.push({{theta}});
         {% endfor %}
+        let freqs = [];
+        {% for f in freq %}
+        freqs.push({{ f }});
+        {% endfor %}
+
+        console.log("rs: " + rs)
+        console.log("thetas: " + thetas)
 
         const c = document.getElementById("canvas");
         const ctx = c.getContext("2d");
+
+        const pointsCnt = 100 * freqs.length;
+        const tInterval = freqs.length < 50 ? 0.01 : 1 ;
+        const drawInterval = 50;
 
         let endpoints = [];
 
         // Current time.
         let t = 0;
         const draw = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "grey";
+            ctx.fillRect(0, 0, c.width, c.height);
             ctx.strokeStyle = "black";
             ctx.beginPath();
-            let x = 0;
-            let y = 0;
+            let x = c.width/2;
+            let y = c.height/2;
             ctx.moveTo(x, y);
             let lastPoint = [x, y];
             for (let i = 0; i < rs.length; i++) {
                 const r = rs[i];
                 const theta = thetas[i];
-                const multiplier = (i % 2 === 0 ? i / 2 : -(i+1)/2);
+                //const multiplier = (i % 2 === 0 ? i / 2 : -(i+1)/2);
+                const multiplier = freqs[i];
                 const angle = theta + multiplier * 2 * Math.PI * t;
                 x += r * Math.cos(angle);
                 y += r * Math.sin(angle);
@@ -44,18 +57,20 @@
             }
             ctx.stroke();
 
-            ctx.strokeStyle = "blue";
             endpoints.push(lastPoint);
-            ctx.moveTo(endpoints[0][0], endpoints[0][1]);
+
             ctx.beginPath();
-            for (let endpoint of endpoints) {
-                ctx.lineTo(endpoint[0], endpoint[1]);
+            for (let i = endpoints.length-1; i >= Math.max(0, endpoints.length - pointsCnt); i--) {
+                let [x, y] = endpoints[i]
+                ctx.lineTo(x, y);
+                let opacity = 1-(endpoints.length-1-i)/pointsCnt;
+                ctx.strokeStyle = `rgba(0,64,160,${opacity})`;
+                ctx.stroke();
             }
-            ctx.stroke();
-            t += 0.01;
+            t += tInterval;
         };
 
-        setInterval(draw, 50);
+        setInterval(draw, drawInterval);
     </script>
 </body>
 </html>
